@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estación Meteorológica IoT</title>
+  <link rel="stylesheet" href="{% static 'dashboard/css/style.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="encabezado">
+    <div>
+      <h1>Estación Meteorológica</h1>
+      <p class="subtitulo">Monitoreo en tiempo real</p>
+    </div>
+    <span id="estado" class="estado">Conectando...</span>
+  </header>
+
+  <main>
+    {% if error %}
+      <div class="alerta">{{ error }}</div>
+    {% endif %}
+
+    <section class="tarjetas">
+      <article class="tarjeta">
+        <p class="etiqueta">Temperatura</p>
+        <p class="valor"><span id="t-temp">{{ ultima.temperatura|default:"--" }}</span><small>°C</small></p>
+      </article>
+
+      <article class="tarjeta">
+        <p class="etiqueta">Humedad del aire</p>
+        <p class="valor"><span id="t-hum">{{ ultima.humedad|default:"--" }}</span><small>%</small></p>
+      </article>
+
+      <article class="tarjeta">
+        <p class="etiqueta">H suelo</p>
+        <p class="valor"><span id="t-suelo">{{ ultima.humedad_suelo|default:"--" }}</span><small>%</small></p>
+      </article>
+
+      <article class="tarjeta">
+        <p class="etiqueta">Techo</p>
+        <p class="valor"><span id="t-techo" class="{% if ultima.estado_techo == 'ABIERTO' %}abierto{% else %}cerrado{% endif %}">{{ ultima.estado_techo|default:"--" }}</span></p>
+      </article>
+    </section>
+
+    <p class="actualizado">Última lectura: <span id="t-fecha">{{ ultima.fecha|default:"--" }}</span></p>
+
+    <section class="panel">
+      <div class="panel-titulo">
+        <h2>Variación ambiental</h2>
+        <span class="leyenda">Últimas {{ grafica.etiquetas|length }} lecturas</span>
+      </div>
+      <div class="grafica-contenedor">
+        <canvas id="grafica"></canvas>
+      </div>
+      {% if not grafica.etiquetas %}
+        <p class="vacio">Todavía no hay datos para graficar.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Historial reciente</h2>
+      <div class="tabla-contenedor">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Temp (°C)</th>
+              <th>H aire (%)</th>
+              <th>H suelo (%)</th>
+              <th>Techo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in historial %}
+            <tr>
+              <td>{{ l.fecha }}</td>
+              <td>{{ l.temperatura }}</td>
+              <td>{{ l.humedad }}</td>
+              <td>{{ l.humedad_suelo }}</td>
+              <td>{{ l.estado_techo }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="vacio">Sin registros todavía.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  {{ grafica|json_script:"datos-grafica" }}
+  <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+</body>
+</html>
